@@ -52,7 +52,7 @@ def update_discipline(
         if session.execute(stmt).scalar():
             raise DisciplineNameIsNotUniqueException()
 
-    if discipline_data.short_name:
+    if discipline_data.short_name is not None:
         stmt = select(exists().where(and_(
             Discipline.short_name == discipline_data.short_name, Discipline.id != discipline_id
         )))
@@ -140,9 +140,10 @@ def create_discipline(discipline_data: DisciplineCreate, session: SessionDep) ->
     if session.execute(stmt).scalar():
         raise DisciplineNameIsNotUniqueException()
 
-    stmt = select(exists().where(Discipline.short_name == discipline_data.short_name))
-    if session.execute(stmt).scalar():
-        raise DisciplineShortNameIsNotUniqueException()
+    if discipline_data.short_name is not None:
+        stmt = select(exists().where(Discipline.short_name == discipline_data.short_name))
+        if session.execute(stmt).scalar():
+            raise DisciplineShortNameIsNotUniqueException()
 
     data = discipline_data.model_dump(exclude_unset=True)
     department = _resolve_department(session, data.get('department_id'))
